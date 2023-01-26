@@ -1,10 +1,9 @@
 from django.db import models
 import datetime
 
-# Create your models here.
 priority_choices = [('Low', 'Low'), ('Medium', 'Medium'), ('Urgent', 'Urgent')]
 
-class Todo(models.Model):
+class Task(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     completed = models.BooleanField(default=False)
