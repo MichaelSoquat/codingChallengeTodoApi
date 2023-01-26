@@ -79,3 +79,10 @@ class UserViewSet(viewsets.GenericViewSet):
         data = UserSerializer(user).data
 
         return Response(data, status = status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+
+        queryset = User.objects.all().order_by('id')
+        serializer = UserSerializer(queryset, many = True)
+
+        return Response(serializer.data)
