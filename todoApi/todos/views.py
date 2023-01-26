@@ -1,8 +1,11 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from .models import Task
-from .serializers import TaskSerializer
-from rest_framework import viewsets
+from .serializers import RegisterSerializer, TaskSerializer, UserSerializer
+from rest_framework import viewsets, status
+from django.contrib.auth.models import User
+from rest_framework.decorators import action
+
+
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -18,6 +21,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             'state': request.data.get('state'),
             'creation_date': request.data.get('creation_date'), 
             'priority': request.data.get('priority'), 
+            'creator': request.data.get('creator') if request.data.get('creator') else ''
         }
 
         serializer = TaskSerializer(data = data)
@@ -40,6 +44,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             'state': request.data.get('state'),
             'creation_date': request.data.get('creation_date'), 
             'priority': request.data.get('priority'), 
+            'creator': request.data.get('creator') if request.data.get('creator') else ''
         }
 
         serializer = TaskSerializer(instance = task_to_edit, data = data)
@@ -58,3 +63,19 @@ class TaskViewSet(viewsets.ModelViewSet):
         task_to_delete.delete()
 
         return Response('Task deleted')
+
+
+class UserViewSet(viewsets.GenericViewSet):
+
+    queryset = User.objects.all().order_by('id')
+    serializer_class = UserSerializer
+
+    @action(detail = False, methods = ['post'])
+    def register(self, request):
+
+        serializer = RegisterSerializer(data = request.data)
+        serializer.is_valid(raise_exception = True)
+        user = serializer.save()
+        data = UserSerializer(user).data
+
+        return Response(data, status = status.HTTP_201_CREATED)
