@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Task
-from django.contrib.auth import password_validation
+from django.contrib.auth import password_validation, authenticate
+from rest_framework.authtoken.models import Token
 from rest_framework.validators import UniqueValidator
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -37,3 +38,26 @@ class RegisterSerializer(serializers.Serializer):
         user = User.objects.create_user(**data)
 
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+
+    username = serializers.CharField(write_only = True, required = True)
+    password = serializers.CharField(write_only = True, required = True)
+
+    def validate(self, attrs):
+
+        user = authenticate(username = attrs["username"], password = attrs["password"])
+
+        if not user:
+            raise serializers.ValidationError('User credentials not valid.')
+
+        self.context["user"] = user
+
+        return attrs
+
+    def create(self, data):
+        
+        token, created = Token.objects.get_or_create(user = self.context["user"])
+
+        return self.context['user'], token.key
